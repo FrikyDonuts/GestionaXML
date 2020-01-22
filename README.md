@@ -14,9 +14,6 @@ Ej fichero correcto:
        <Icono>rosas.png</Icono>
    </Producto>
   </Productos>
- </xmp>
- <xmp>
- 
  
 Ej fichero incorrecto:
  
