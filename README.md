@@ -2,6 +2,7 @@
 Esta es una clase para gestionar ficheros XML (Funciona solo a un nivel de profundidad).
 
 Ej fichero correcto:
+<xmp>
  <Productos>
    <Producto>
        <Nombre>Peonias</Nombre>
@@ -15,11 +16,11 @@ Ej fichero correcto:
    </Producto>
   </Productos>
  </xmp>
- <xmp>
  
  
 Ej fichero incorrecto:
  
+ <xmp>
  <Productos>
    <Producto>
        <flor>
