@@ -63,7 +63,7 @@ import org.xml.sax.SAXException;
  * }
  * </pre>
  * @author neowavila
- * @version 2.5
+ * @version 2.6
  */
 public class GestionaXML 
 {
@@ -453,6 +453,122 @@ public class GestionaXML
                 return i;
        }
         return -1;
+    }
+    /**
+     * Devuelve el indice del primer nodo en el que coincidan 
+     * todos los valores en los campos a buscar (estricto==true) o en el primero
+     * que coincida alguno (estricto==false).
+     * @param campos Array de Strings con los nombres de los campos a buscar.
+     * @param valores Array de Strings con los valores de los campos a buscar.
+     * @param estricto si es true tienen que coincidar todos los campos, sino solo tiene que coincidir alguno.
+     * @return el indice del primer nodo en el que coincidan 
+     * todos los valores en los campos a buscar (estricto==true) o en el primero
+     * que coincida alguno (estricto==false).
+     */
+    public int getIndiceNodo(String campos[], String valores[], boolean estricto)
+    {
+        Node node;
+        int numCoincidencias;
+        
+        if(campos.length == valores.length)
+        {
+            for (int i=0; i<hijosRaiz.length; i++)
+            {
+                numCoincidencias=0;
+                node = hijosRaiz[i];
+
+                for (int j = 0; j < campos.length; j++) 
+                {
+                   String valor = valores[j];
+                   String campo = campos[j];
+                   String valorCampo = valorCampo(node, campo);
+
+                   if(valorCampo.equals(valor))
+                       numCoincidencias++;
+               }
+                
+                if(numCoincidencias==campos.length)
+                    return i;
+                if(numCoincidencias>0 && !estricto)
+                    return i;
+            }
+        }
+        return -1;
+    }
+    /**
+     * Devuelve todos los indices en el array de hijosRaiz del nodo buscado.
+     * @param campo Campo para buscar el nodo.
+     * @param valorCampo valor que tiene que tener el campo buscado.
+     * @return indice del nodo.
+     */
+    public int[] getIndicesNodos(String campo, String valorCampo)
+    {
+        List listaIndices = new List();
+        Node node;
+
+        for (int i=0; i<hijosRaiz.length; i++)
+        {
+             node = hijosRaiz[i];
+             //Es un nodo libro que hay que procesar si es de tipo Elemento
+             String valorCampoNodo = valorCampo(node, campo);
+             if(valorCampo.equals(valorCampoNodo))
+                 listaIndices.add(String.valueOf(i));
+        }
+        
+        String[] sIndices = listaIndices.getItems();
+        int indices[] = new int[sIndices.length];
+        for (int i = 0; i < sIndices.length; i++)
+            indices[i] = Integer.valueOf(sIndices[i]);
+        
+        return indices;
+    }
+    /**
+     * Devuelve el indice del primer nodo en el que coincidan 
+     * todos los valores en los campos a buscar (estricto==true) o en el primero
+     * que coincida alguno (estricto==false).
+     * @param campos Array de Strings con los nombres de los campos a buscar.
+     * @param valores Array de Strings con los valores de los campos a buscar.
+     * @param estricto si es true tienen que coincidar todos los campos, sino solo tiene que coincidir alguno.
+     * @return el indice del primer nodo en el que coincidan 
+     * todos los valores en los campos a buscar (estricto==true) o en el primero
+     * que coincida alguno (estricto==false).
+     */
+    public int[] getIndicesNodos(String campos[], String valores[], boolean estricto)
+    {
+        Node node;
+        int numCoincidencias;
+        List listaIndices = new List();
+        
+        if(campos.length == valores.length)
+        {
+            for (int i=0; i<hijosRaiz.length; i++)
+            {
+                numCoincidencias=0;
+                node = hijosRaiz[i];
+
+                for (int j = 0; j < campos.length; j++) 
+                {
+                   String valor = valores[j];
+                   String campo = campos[j];
+                   String valorCampo = valorCampo(node, campo);
+
+                   if(valorCampo.equals(valor))
+                       numCoincidencias++;
+               }
+                
+                if(numCoincidencias==campos.length)
+                    listaIndices.add(String.valueOf(i));
+                else if(numCoincidencias>0 && !estricto)
+                    listaIndices.add(String.valueOf(i));
+            }
+        }
+        
+        String[] sIndices = listaIndices.getItems();
+        int indices[] = new int[sIndices.length];
+        for (int i = 0; i < sIndices.length; i++)
+            indices[i] = Integer.valueOf(sIndices[i]);
+        
+        return indices;
     }
     /**
      * Devuelve el valor de un campo contenido en un nodo.
