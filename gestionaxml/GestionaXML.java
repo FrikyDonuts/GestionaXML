@@ -63,7 +63,7 @@ import org.xml.sax.SAXException;
  * }
  * </pre>
  * @author neowavila
- * @version 2.6
+ * @version 2.6.5
  */
 public class GestionaXML 
 {
@@ -109,6 +109,115 @@ public class GestionaXML
         }
     }
     /**
+     * Devuelve un array de Strings con todos los datos de un nodo.
+     * @param n Nodo del que queremos los datos.
+     */
+    private String[] procesaNodo(Node n)
+    {
+        NodeList nodos=n.getChildNodes();
+        List datosNodo = new List();
+        
+        for(int i=0; i<nodos.getLength(); i++)
+        {
+            Node ntemp = nodos.item(i);
+            if(ntemp.getNodeType()==Node.ELEMENT_NODE)
+            {
+                //String tituloInfo=ntemp.getNodeName();
+                String info=ntemp.getChildNodes().item(0).getNodeValue();
+                datosNodo.add(info);
+            }
+        }  
+        return datosNodo.getItems();
+    }
+    /**
+     * @deprecated mejor usar getIndiceNodo para no tener que trabajar con nodos.
+     * Busca en la lista de hijosRaiz y devuelve el primer nodo que coincida con
+     * el campo y el valor.
+     * @param campo campo a buscar.
+     * @param valorCampo valor del campo a buscar.
+     * @return Nodo que tiene contiene el campo y valor.
+     */
+    private Node buscaNodo(String campo, String valorCampo)
+    {
+       Node node;
+       
+       for (int i=0; i<hijosRaiz.length; i++) //Proceso los nodos hijo
+       { 
+           node = hijosRaiz[i];
+           if(node.getNodeType()==Node.ELEMENT_NODE)
+           {
+               //Es un nodo libro que hay que procesar si es de tipo Elemento
+               String valorCampoNodo = valorCampo(node, campo);
+               if(valorCampo.equals(valorCampoNodo))
+                   return node;
+            }
+       }
+        return null;
+    }
+    /**
+     * Cuenta cuantos nodos de tipo elemento hay en la lista de nodos hijos del raiz.
+     * @return Devuelve cuantos nodos de tipo elemento hay en la lista de nodos hijos del raiz.
+     */
+    private int cuentaNodos()
+    {
+        NodeList listaNodos = raiz.getChildNodes();
+        int contador=0;
+        for (int i = 0; i < listaNodos.getLength(); i++) 
+        {
+            Node node = listaNodos.item(i);
+            if(node.getNodeType()==Node.ELEMENT_NODE)
+                contador++;
+        }
+        return contador;
+    }
+    /**
+     * Devuelve un array con todos los nodos hijos de tipo element del nodo raiz.
+     * @return un array con todos los nodos hijos de tipo element del nodo raiz.
+     */
+    private Node[] getNodosRaiz()
+    {
+        NodeList listaNodos = raiz.getChildNodes();
+        Node[] nodos= new Node[cuentaNodos()];
+        int contador=0;
+        
+        for (int i = 0; i < listaNodos.getLength(); i++) 
+        {
+            Node node = listaNodos.item(i);
+            if (node.getNodeType()==Node.ELEMENT_NODE)
+            {
+                nodos[contador]=listaNodos.item(i);
+                contador++;
+            }
+        }
+        
+        return nodos;
+    }
+    /**
+     * Devuelve el valor de un campo contenido en un nodo.
+     * @param n Un nodo.
+     * @param campo titulo del campo que quieres buscar.
+     * @return valor del campo buscado
+     */
+    private String valorCampo(Node n, String campo)
+    {
+        //Obtiene los hijos del Libro (titulo y autor)
+        NodeList nodos=n.getChildNodes();
+        Node ntemp;
+        
+         for (int i=0; i<nodos.getLength(); i++)
+         {
+             ntemp = nodos.item(i);
+             if(ntemp.getNodeType()==Node.ELEMENT_NODE)
+             {
+                 String tituloCampo=ntemp.getNodeName();
+                 if(tituloCampo.equals(campo))
+                     return ntemp.getChildNodes().item(0).getNodeValue();
+             }
+         }
+         return "No se ha encontrado el campo";
+    }
+    
+    /**
      * Devuelve un array de Strings con el contenidos de los nodos hijos de la 
      * lista de hijos principal. 
      * <pre>
@@ -131,7 +240,7 @@ public class GestionaXML
      * Ej String[]: {"Rosa-1","Lirio-2"}
      * @return String[] valores de los nodos hijos de la lista de hijos principal.
      */
-    public String[] getDatosHijosRaiz()
+    public String[] getValorNodos()
     {
        int contador=0;
        String datos[]= new String[hijosRaiz.length];
@@ -177,7 +286,7 @@ public class GestionaXML
      * @return String[] valores de los nodos hijos de la lista de hijos principal.
      * @param separador separador para los valores del String.
      */
-    public String[] getDatosHijosRaiz(String separador)
+    public String[] getValorNodos(String separador)
     {
        int contador=0;
        String datos[]= new String[hijosRaiz.length];
@@ -204,31 +313,10 @@ public class GestionaXML
     }
     /**
      * Devuelve un array de Strings con todos los datos de un nodo.
-     * @param n Nodo del que queremos los datos.
-     */
-    private String[] procesaNodo(Node n)
-    {
-        NodeList nodos=n.getChildNodes();
-        List datosNodo = new List();
-        
-        for(int i=0; i<nodos.getLength(); i++)
-        {
-            Node ntemp = nodos.item(i);
-            if(ntemp.getNodeType()==Node.ELEMENT_NODE)
-            {
-                //String tituloInfo=ntemp.getNodeName();
-                String info=ntemp.getChildNodes().item(0).getNodeValue();
-                datosNodo.add(info);
-            }
-        }  
-        return datosNodo.getItems();
-    }
-    /**
-     * Devuelve un array de Strings con todos los datos de un nodo.
      * @param indiceNodo numero del nodo en el array de hijosRaiz.
      * @return array con los valores del nodo.
      */
-    public String[] procesaNodo(int indiceNodo)
+    public String[] getValoresNodo(int indiceNodo)
     {
         Node n = this.hijosRaiz[indiceNodo];
         NodeList nodos=n.getChildNodes();
@@ -247,20 +335,39 @@ public class GestionaXML
         return datosNodo.getItems();
     }
     /**
-     * Cuenta cuantos nodos de tipo elemento hay en la lista de nodos hijos del raiz.
-     * @return Devuelve cuantos nodos de tipo elemento hay en la lista de nodos hijos del raiz.
+     * Devuelve un String[numCamposNodo][2] donde contiene el nombre de los campos
+     * del nodo y la informacion que contiene en formato:
+     * String[n][0] = Campo
+     * String[n][1] = Informacion.
+     * @param indiceNodo nodo del que quremos la informacion.
+     * @return String[numCamposNodo][2] donde contiene el nombre de los campos
+     * del nodo y la informacion que contiene.
      */
-    private int cuentaNodos()
+    public String[][] getNodo(int indiceNodo)
     {
-        NodeList listaNodos = raiz.getChildNodes();
-        int contador=0;
-        for (int i = 0; i < listaNodos.getLength(); i++) 
+        Node n = this.hijosRaiz[indiceNodo];
+        NodeList nodos=n.getChildNodes();
+        List datosNodo = new List();
+        List camposNodo = new List();
+        
+        for(int i=0; i<nodos.getLength(); i++)
         {
-            Node node = listaNodos.item(i);
-            if(node.getNodeType()==Node.ELEMENT_NODE)
-                contador++;
+            Node ntemp = nodos.item(i);
+            if(ntemp.getNodeType()==Node.ELEMENT_NODE)
+            {
+                String tituloInfo=ntemp.getNodeName();
+                String info=ntemp.getChildNodes().item(0).getNodeValue();
+                datosNodo.add(info);
+                camposNodo.add(tituloInfo);
+            }
         }
-        return contador;
+        String[][] infoNodo = new String[camposNodo.getItemCount()][2];
+        for (int i = 0; i < infoNodo.length; i++) 
+        {
+            infoNodo[i][0] = camposNodo.getItem(i);
+            infoNodo[i][1] = datosNodo.getItem(i);
+        }
+        return infoNodo;
     }
     /**
      * Devuelve la longitud del array hijosRaiz (numero de nodos de tipo element).
@@ -411,30 +518,6 @@ public class GestionaXML
             return false;
     }
     /**
-     * Busca en la lista de hijosRaiz y devuelve el primer nodo que coincida con
-     * el campo y el valor.
-     * @param campo campo a buscar.
-     * @param valorCampo valor del campo a buscar.
-     * @return Nodo que tiene contiene el campo y valor.
-     */
-    private Node buscaNodo(String campo, String valorCampo)
-    {
-       Node node;
-       
-       for (int i=0; i<hijosRaiz.length; i++) //Proceso los nodos hijo
-       { 
-           node = hijosRaiz[i];
-           if(node.getNodeType()==Node.ELEMENT_NODE)
-           {
-               //Es un nodo libro que hay que procesar si es de tipo Elemento
-               String valorCampoNodo = valorCampo(node, campo);
-               if(valorCampo.equals(valorCampoNodo))
-                   return node;
-            }
-       }
-        return null;
-    }
-    /**
      * Devuelve el indice en el array de hijosRaiz del nodo buscado.
      * @param campo Campo para buscar el nodo.
      * @param valorCampo valor que tiene que tener el campo buscado.
@@ -571,30 +654,6 @@ public class GestionaXML
         return indices;
     }
     /**
-     * Devuelve el valor de un campo contenido en un nodo.
-     * @param n Un nodo.
-     * @param campo titulo del campo que quieres buscar.
-     * @return valor del campo buscado
-     */
-    private String valorCampo(Node n, String campo)
-    {
-        //Obtiene los hijos del Libro (titulo y autor)
-        NodeList nodos=n.getChildNodes();
-        Node ntemp;
-        
-         for (int i=0; i<nodos.getLength(); i++)
-         {
-             ntemp = nodos.item(i);
-             if(ntemp.getNodeType()==Node.ELEMENT_NODE)
-             {
-                 String tituloCampo=ntemp.getNodeName();
-                 if(tituloCampo.equals(campo))
-                     return ntemp.getChildNodes().item(0).getNodeValue();
-             }
-         }
-         return "No se ha encontrado el campo";
-    }
-    /**
      * Modifica la informacion del campo de un nodo.
      * @param indiceNodo indice del nodo a cambiar.
      * @param campoCambiar Titulo del campo a buscar en el nodo.
@@ -629,28 +688,6 @@ public class GestionaXML
             }
         }
         return false;
-    }
-    /**
-     * Devuelve un array con todos los nodos hijos de tipo element del nodo raiz.
-     * @return un array con todos los nodos hijos de tipo element del nodo raiz.
-     */
-    private Node[] getNodosRaiz()
-    {
-        NodeList listaNodos = raiz.getChildNodes();
-        Node[] nodos= new Node[cuentaNodos()];
-        int contador=0;
-        
-        for (int i = 0; i < listaNodos.getLength(); i++) 
-        {
-            Node node = listaNodos.item(i);
-            if (node.getNodeType()==Node.ELEMENT_NODE)
-            {
-                nodos[contador]=listaNodos.item(i);
-                contador++;
-            }
-        }
-        
-        return nodos;
     }
     /**
      * Vuelve a cargar los nodos en hijosRaiz.
