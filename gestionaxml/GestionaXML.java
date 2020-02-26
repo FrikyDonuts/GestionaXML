@@ -63,7 +63,7 @@ import org.xml.sax.SAXException;
  * }
  * </pre>
  * @author neowavila
- * @version 2.6.5
+ * @version 2.8.0
  */
 public class GestionaXML 
 {
@@ -80,11 +80,17 @@ public class GestionaXML
     {
         fichero=new File(rutaXML);
         if(abrir())
+        {
             System.out.println("Archivo abierto con extio");
+            raiz=doc.getFirstChild();
+            hijosRaiz=getNodosRaiz();
+        }
         else
+        {
+            raiz = null;
+            hijosRaiz = null;
             System.out.println("Error abriendo el archivo");
-        raiz=doc.getFirstChild();
-        hijosRaiz=getNodosRaiz();
+        }
     }                                                                                         
 
     /**
@@ -147,7 +153,7 @@ public class GestionaXML
            if(node.getNodeType()==Node.ELEMENT_NODE)
            {
                //Es un nodo libro que hay que procesar si es de tipo Elemento
-               String valorCampoNodo = valorCampo(node, campo);
+               String valorCampoNodo = GestionaXML.this.getValorCampo(node, campo);
                if(valorCampo.equals(valorCampoNodo))
                    return node;
             }
@@ -198,7 +204,7 @@ public class GestionaXML
      * @param campo titulo del campo que quieres buscar.
      * @return valor del campo buscado
      */
-    private String valorCampo(Node n, String campo)
+    private String getValorCampo(Node n, String campo)
     {
         //Obtiene los hijos del Libro (titulo y autor)
         NodeList nodos=n.getChildNodes();
@@ -216,6 +222,46 @@ public class GestionaXML
          }
          return "No se ha encontrado el campo";
     }
+    /**
+     * Verifica que num exista en el array numeros.
+     * @param num numero a buscar en el array.
+     * @param numeros array donde buscamos el numero.
+     * @return true o false en funcion de si se encuentra num en el array.
+     */
+    private boolean compruebaNum(int num, int[] numeros)
+    {
+        for (int i = 0; i < numeros.length; i++) {
+            int numero = numeros[i];
+            if(num==numero)
+                return false;
+        }
+        return false;
+    }
+    
+    /**
+     * Devuelve el valor de un campo contenido en un nodo.
+     * @param indice posicion del nodo en el array hijosRaiz.
+     * @param campo titulo del campo que quieres buscar.
+     * @return valor del campo buscado
+     */
+    public String getValorCampo(int indice, String campo)
+    {
+        NodeList nodos=this.hijosRaiz[indice].getChildNodes();
+        Node ntemp;
+        
+        for (int i=0; i<nodos.getLength(); i++)
+        {
+            ntemp = nodos.item(i);
+            if(ntemp.getNodeType()==Node.ELEMENT_NODE)
+            {
+                String tituloCampo=ntemp.getNodeName();
+                if(tituloCampo.equals(campo))
+                    return ntemp.getChildNodes().item(0).getNodeValue();
+            }
+        }
+        return "No se ha encontrado el campo";
+    }
+    
     
     /**
      * Devuelve un array de Strings con el contenidos de los nodos hijos de la 
@@ -479,6 +525,182 @@ public class GestionaXML
     }
     /**
      * Crea un hijo de raiz con los datos del array.
+     * @param tituloNodo nombre del nodo.
+     * @param datos array que contiene los datos del nodo.
+     * Tiene que ser en el formato String[n campos][2],
+     * donde en la fila se guardan los campos y en las columnas los valores.
+     * @param saltaIndices lista con los indices que tiene que saltarse 
+     * en el array de datos[][] (estos no seran agregados al xml).
+     * @return true en caso de que se logre crear el nodo con exito.
+     */
+    public boolean creaNodo(String tituloNodo, String[][] datos, int []saltaIndices)
+    {        
+        if(datos[0].length==2)
+        {
+            Element elePadre = doc.createElement(tituloNodo);
+            
+            for(int i = 0; i < datos.length; i++) 
+            {
+                if(compruebaNum(i, saltaIndices))
+                    continue;
+                
+                String titulo;
+                String valor;
+                try
+                {
+                    titulo = datos[i][0];
+                    valor = datos[i][1];
+                }
+                catch(NullPointerException e)
+                {
+                    return false;
+                }
+                
+                Element element = doc.createElement(titulo);
+                Text text = doc.createTextNode(valor);
+                element.appendChild(text);
+                elePadre.appendChild(element);
+            }
+            raiz.appendChild(elePadre);
+            return true;
+        }
+        else
+            return false;
+    }
+    /**
+     * Crea un hijo de raiz con los datos del array.
+     * @param tituloNodo nombre del nodo.
+     * @param datos array que contiene los datos del nodo.
+     * Tiene que ser en el formato String[n campos][2],
+     * donde en la fila se guardan los campos y en las columnas los valores.
+     * @param saltaIndices indice de la lista de datos que no queremos agregar.
+     * @return true en caso de que se logre crear el nodo con exito.
+     */
+    public boolean creaNodo(String tituloNodo, String[][] datos, int saltaIndices)
+    {        
+        if(datos[0].length==2)
+        {
+            Element elePadre = doc.createElement(tituloNodo);
+            
+            for(int i = 0; i < datos.length; i++) 
+            {
+                if(i==saltaIndices)
+                    continue;
+                
+                String titulo;
+                String valor;
+                try
+                {
+                    titulo = datos[i][0];
+                    valor = datos[i][1];
+                }
+                catch(NullPointerException e)
+                {
+                    return false;
+                }
+                
+                Element element = doc.createElement(titulo);
+                Text text = doc.createTextNode(valor);
+                element.appendChild(text);
+                elePadre.appendChild(element);
+            }
+            raiz.appendChild(elePadre);
+            return true;
+        }
+        else
+            return false;
+    }
+    /**
+     * Crea un hijo de raiz con los datos del array.
+     * @param datos array que contiene los datos del nodo.
+     * Tiene que ser en el formato String[n campos][2],
+     * donde en la fila se guardan los campos y en las columnas los valores.
+     * @param saltaIndices indice de la lista de datos que no queremos agregar.
+     * @return true en caso de que se logre crear el nodo con exito.
+     */
+    public boolean creaNodo(String[][] datos, int saltaIndices)
+    {        
+        String tituloNodo=hijosRaiz[0].getNodeName();
+
+        if(datos[0].length==2)
+        {
+            Element elePadre = doc.createElement(tituloNodo);
+            
+            for(int i = 0; i < datos.length; i++) 
+            {
+                if(i==saltaIndices)
+                    continue;
+                
+                String titulo;
+                String valor;
+                try
+                {
+                    titulo = datos[i][0];
+                    valor = datos[i][1];
+                }
+                catch(NullPointerException e)
+                {
+                    return false;
+                }
+                
+                Element element = doc.createElement(titulo);
+                Text text = doc.createTextNode(valor);
+                element.appendChild(text);
+                elePadre.appendChild(element);
+            }
+            raiz.appendChild(elePadre);
+            return true;
+        }
+        else
+            return false;
+    }
+    /**
+     * Crea un hijo de raiz con los datos del array.
+     * @param datos array que contiene los datos del nodo.
+     * Tiene que ser en el formato String[n campos][2],
+     * donde en la fila se guardan los campos y en las columnas los valores.
+     * @param saltaIndices lista con los indices que tiene que saltarse 
+     * en el array de datos[][] (estos no seran agregados al xml).
+     * @return true en caso de que se logre crear el nodo con exito.
+     */
+    public boolean creaNodo(String[][] datos, int []saltaIndices)
+    {
+        String tituloNodo=hijosRaiz[0].getNodeName();
+        
+        if(datos[0].length==2)
+        {
+            Element elePadre = doc.createElement(tituloNodo);
+            
+            for(int i = 0; i < datos.length; i++) 
+            {
+                if(compruebaNum(i, saltaIndices))
+                    continue;
+                
+                String titulo;
+                String valor;
+                try
+                {
+                    titulo = datos[i][0];
+                    valor = datos[i][1];
+                }
+                catch(NullPointerException e)
+                {
+                    return false;
+                }
+                
+                Element element = doc.createElement(titulo);
+                Text text = doc.createTextNode(valor);
+                element.appendChild(text);
+                elePadre.appendChild(element);
+            }
+            raiz.appendChild(elePadre);
+            return true;
+        }
+        else
+            return false;
+    }
+    /**
+     * Crea un hijo de raiz con los datos del array.
      * @param datos array que contiene los datos del nodo.
      * Tiene que ser en el formato String[n campos][2],
      * donde en la fila se guardan los campos y en las columnas los valores.
@@ -531,7 +753,7 @@ public class GestionaXML
        {
             node = hijosRaiz[i];
             //Es un nodo libro que hay que procesar si es de tipo Elemento
-            String valorCampoNodo = valorCampo(node, campo);
+            String valorCampoNodo = GestionaXML.this.getValorCampo(node, campo);
             if(valorCampo.equals(valorCampoNodo))
                 return i;
        }
@@ -564,7 +786,7 @@ public class GestionaXML
                 {
                    String valor = valores[j];
                    String campo = campos[j];
-                   String valorCampo = valorCampo(node, campo);
+                   String valorCampo = GestionaXML.this.getValorCampo(node, campo);
 
                    if(valorCampo.equals(valor))
                        numCoincidencias++;
@@ -593,7 +815,7 @@ public class GestionaXML
         {
              node = hijosRaiz[i];
              //Es un nodo libro que hay que procesar si es de tipo Elemento
-             String valorCampoNodo = valorCampo(node, campo);
+             String valorCampoNodo = GestionaXML.this.getValorCampo(node, campo);
              if(valorCampo.equals(valorCampoNodo))
                  listaIndices.add(String.valueOf(i));
         }
@@ -633,7 +855,7 @@ public class GestionaXML
                 {
                    String valor = valores[j];
                    String campo = campos[j];
-                   String valorCampo = valorCampo(node, campo);
+                   String valorCampo = GestionaXML.this.getValorCampo(node, campo);
 
                    if(valorCampo.equals(valor))
                        numCoincidencias++;
@@ -650,6 +872,26 @@ public class GestionaXML
         int indices[] = new int[sIndices.length];
         for (int i = 0; i < sIndices.length; i++)
             indices[i] = Integer.valueOf(sIndices[i]);
+        
+        return indices;
+    }
+    /**
+     * Devuelve los indices de todos los nodos tipo Elemenet en el archivo.
+     * @return array con todos los indices de nodos Element.
+     */
+    public int[] getIndicesNodos()
+    {
+        List listaIndices = new List();
+        
+        for (int i = 0; i < hijosRaiz.length; i++) {
+            Node node = hijosRaiz[i];
+            if(node.getNodeType()==Node.ELEMENT_NODE)
+                listaIndices.add(String.valueOf(i));
+        }
+        
+        int[] indices = new int[listaIndices.getItemCount()];
+        for (int i = 0; i < indices.length; i++)
+            indices[i]=Integer.valueOf(listaIndices.getItem(i));
         
         return indices;
     }
